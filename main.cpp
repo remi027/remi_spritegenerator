@@ -7,29 +7,36 @@
 // g++ -std=c++17 {filename}.cpp
 // Don't use (for now) -c 
 
+/***************/
+
+
+// Global variables
+const std::string DATAPATH = "./data/";             // global variable, folder: ./data/ 
+const std::string ASSETSPATH = "./data/assets";     // global variable, folder: ./data/assets
+const std::string SPRITESPATH = "./data/sprites";   // global variable, folder: ./data/sprites
+
 void DirCheck()
 {
     /***
     Checks if the data folder and its subfolders exists, if they don't, it will create it
     ***/
-    // Check if folders are there
     bool assetsCheck = false, spritesCheck = false;
     std::string subDir;
-    std::string path = "./data/";
 
-    if(!std::filesystem::exists("./data"))
+    // Check if data folder is there
+    if(!std::filesystem::exists(DATAPATH))
     {
-        std::filesystem::create_directory("data");
+        std::filesystem::create_directory(DATAPATH);
     }
     
-    for (const auto& entry : std::filesystem::directory_iterator(path))
+    for (const auto& entry : std::filesystem::directory_iterator(DATAPATH))
     {
         subDir = entry.path();
-        if(subDir == "./data/assets")
+        if(subDir == ASSETSPATH)
         {
             assetsCheck = true;
         }
-        if(subDir == "./data/sprites")
+        if(subDir == SPRITESPATH)
         {
             spritesCheck = true;
         }
@@ -40,47 +47,45 @@ void DirCheck()
     {
         return;
     }
-
     // If they are not, create the missing folder
     if(assetsCheck == false)
     {
-        std::filesystem::create_directory("data/assets");
+        std::filesystem::create_directory(ASSETSPATH);
     }
     if(spritesCheck == false)
     {
-        std::filesystem::create_directory("data/sprites");
+        std::filesystem::create_directory(SPRITESPATH);
     }
+    return;
 }
 
-int * FileCheck()
+std::vector<std::string> FileCheck()
 {
-    std::string path = "./data/assets";
-    std::vector<std::string> dirArray;
-    std::string getDirs, getFile, assetPath, found;
-    bool materialCheck = false, chromaCheck = false, propCheck = false;
-    int i = 0;
-    
-    for (const auto& folder : std::filesystem::directory_iterator(path))
+    std::vector<std::string> dirArray;                                      // Initializing vector that will hold all 
+    dirArray.reserve(0);                                                    // Setting array to zero, it'll be pushed later
+    std::string getDirs, getFile, assetPath, found;                         // Some strings for later use
+    bool materialCheck = false, chromaCheck = false, propCheck = false;     // Booleans checks
+    int i = 0;                                                              // Counter for array size
+    auto dataFolderIterator = std::filesystem::directory_iterator(ASSETSPATH);
+
+    for (const auto& folder : dataFolderIterator)
     {
         getDirs = folder.path();
         if(std::filesystem::is_directory(getDirs))
         {
-            dirArray.push_back(getDirs);
-            for (const auto& subFolder : std::filesystem::directory_iterator(getDirs))
+            auto assetsIterator = std::filesystem::directory_iterator(getDirs);
+            for (const auto& subFolder : assetsIterator)
             {
                 getFile = subFolder.path();
-                size_t pos1 = getFile.find("material.png");
-                if(pos1 != std::string::npos)
+                if(getFile.find("material.png") != std::string::npos)
                 {
                     materialCheck = true;
                 }
-                size_t pos2 = getFile.find("chroma.png");
-                if(pos2 != std::string::npos)
+                if(getFile.find("chroma.png") != std::string::npos)
                 {
                     chromaCheck = true;
                 }
-                size_t pos3 = getFile.find("properties.info");
-                if(pos3 != std::string::npos)
+                if(getFile.find("properties.info") != std::string::npos)
                 {
                     propCheck = true;
                 }
@@ -88,6 +93,7 @@ int * FileCheck()
             if(materialCheck && chromaCheck && propCheck)
             {
                 std::cout << "Asset: " << getDirs << " ok." << std::endl;
+                dirArray.push_back(getDirs);            // If given dir is ok, add it as an array position
                 i++;
             }
             if(materialCheck == false)
@@ -102,21 +108,30 @@ int * FileCheck()
             {
                 std::cout << "Property file not found in asset: " << getDirs << std::endl;
             }
-            
         }
     }
     if(i == 0)
     {
+        std::string error_return = "ERROR";
+        dirArray.push_back(error_return);
         std::cout << "No assets found!\nAdd some to start, refer to the manual on how to." << std::endl;
+        return dirArray;
     }
-    return 0;
+    else
+    {
+        return dirArray;
+    }
 }
 
 int main(int argc, char** argv)
 {
     std::cout << "Init done.\n";
     DirCheck();     // Checks if the data folder and its subfolders exists, if they don't, it will create it
-    FileCheck();    
+    std::vector<std::string> a = FileCheck();       // PLACEHOLDER
+
+    std::cout << a[0] << a[1] << std::endl;                 // PLACEHOLDER
+
+
 
     return 0;
 }
